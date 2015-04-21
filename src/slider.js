@@ -76,6 +76,7 @@ angular.module('ui.slider', []).value('uiSliderConfig',{}).directive('uiSlider',
                 // Update model value from slider
                 elm.bind('slide', function(event, ui) {
                     ngModel.$setViewValue(ui.values || ui.value);
+                    $(ui.handle).find('.slider-tooltip').text(ui.value);
                     scope.$apply();
                 });
 
@@ -140,20 +141,23 @@ angular.module('ui.slider', []).value('uiSliderConfig',{}).directive('uiSlider',
                 // Add tick marks if 'tick' and 'step' attributes have been setted on element.
                 // Support horizontal slider bar so far. 'tick' and 'step' attributes are required.
                 var options = angular.extend({}, scope.$eval(attrs.uiSlider));
-                var properties = ['max', 'step', 'tick'];
+                var properties = ['min', 'max', 'step', 'tick', 'tip'];
                 angular.forEach(properties, function(property) {
                     if (angular.isDefined(attrs[property])) {
                         options[property] = attrs[property];
                     }
                 });
                 if (angular.isDefined(options['tick']) && angular.isDefined(options['step'])) {
-                    var total = parseInt(parseInt(options['max'])/parseInt(options['step']));
+                    var total = parseInt( (parseInt(options['max'])-parseInt(options['min'])) / parseInt(options['step']) );
                     for (var i = total; i >= 0; i--) {
                         var left = ((i / total) * 100) + '%';
-                        $("<div/>").addClass("ui-slider-tick").appendTo(element).css({left: left});
-                    };
+                        $('<div/>').addClass('ui-slider-tick').appendTo(element).css({left: left});
+                    }
                 }
-            }
+                if(angular.isDefined(options['tip'])) {
+                   $timeout(function(){element.find('.ui-slider-handle').append('<div class="slider-tooltip">'+ngModel.$viewValue+'</div>')},10);
+                }
+            };
 
             return {
                 pre: preLink,
